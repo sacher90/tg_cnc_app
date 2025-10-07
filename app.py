@@ -5,6 +5,7 @@ import datetime as dt
 import os
 from typing import Any, Dict
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request, session
 
 from api.admin import (
@@ -18,6 +19,9 @@ from api.admin import (
 )
 from api.calc_modes import calculate_cutting_modes
 from api.gpt_materials import analyse_material, load_materials
+
+load_dotenv()
+
 
 app = Flask(__name__)
 app.config["JSON_AS_ASCII"] = False
