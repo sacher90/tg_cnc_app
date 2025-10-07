@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Режимы резания CNC</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+    <style>
+        :root {
+            color-scheme: light dark;
+            font-family: 'Roboto', sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: #111927;
+            color: #f2f6ff;
+        }
+        .app-container {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 24px 18px 48px;
+        }
+        h1 {
+            font-size: 1.6rem;
+            margin-bottom: 12px;
+        }
+        .step {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 16px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+        }
+        .step.active { display: block; }
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 1rem;
+            font-weight: 500;
+            background: linear-gradient(135deg, #28a4ff, #217bff);
+            color: #fff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        button.secondary {
+            background: rgba(255,255,255,0.12);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 20px rgba(33, 123, 255, 0.25);
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(13, 25, 39, 0.9);
+            color: #f2f6ff;
+            margin-bottom: 16px;
+        }
+        label { display: block; font-weight: 500; margin-bottom: 8px; }
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        table th, table td {
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px;
+            text-align: left;
+        }
+        .recommendations {
+            margin-top: 20px;
+            background: rgba(0,0,0,0.35);
+            padding: 16px;
+            border-radius: 14px;
+        }
+        .pill {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(40,164,255,0.2);
+            margin-right: 8px;
+            margin-bottom: 4px;
+        }
+        .error-box {
+            margin-top: 12px;
+            background: rgba(255, 86, 86, 0.2);
+            padding: 12px;
+            border-radius: 10px;
+            display: none;
+        }
+        .success-box {
+            margin-top: 12px;
+            background: rgba(46, 204, 113, 0.2);
+            padding: 12px;
+            border-radius: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <h1>Режимы резания CNC</h1>
+    <p id="accessMessage"></p>
+    <div class="error-box" id="errorBox"></div>
+
+    <div class="step" id="step-1">
+        <h2>Шаг 1: Выберите инструмент</h2>
+        <div class="btn-row">
+            <button data-tool="drill" class="tool-btn">Сверло</button>
+            <button data-tool="mill" class="tool-btn">Фреза</button>
+        </div>
+    </div>
+
+    <div class="step" id="step-2">
+        <h2>Шаг 2: Материал заготовки</h2>
+        <label for="materialInput">Введите название материала</label>
+        <input id="materialInput" list="materialsList" placeholder="Например: Алюминий 6061" autocomplete="off">
+        <datalist id="materialsList"></datalist>
+    </div>
+
+    <div class="step" id="step-3">
+        <h2>Шаг 3: Материал инструмента</h2>
+        <div class="btn-row">
+            <button class="tool-material-btn" data-material="HSS">HSS</button>
+            <button class="tool-material-btn" data-material="carbide">Carbide</button>
+            <button class="tool-material-btn" data-material="пластина">Пластина</button>
+        </div>
+    </div>
+
+    <div class="step" id="step-4">
+        <h2>Шаг 4: Геометрия инструмента</h2>
+        <label for="diameterInput">Диаметр инструмента, мм</label>
+        <input id="diameterInput" type="number" min="0.1" step="0.1" placeholder="Например: 12">
+        <label for="teethInput">Количество зубьев</label>
+        <input id="teethInput" type="number" min="1" step="1" placeholder="Например: 4">
+    </div>
+
+    <div class="step" id="step-5">
+        <h2>Шаг 5: Результат</h2>
+        <div id="resultsContainer"></div>
+        <div class="recommendations" id="recommendationsContainer"></div>
+    </div>
+
+    <div class="navigation">
+        <button id="resetBtn" class="secondary">Отменить и начать заново</button>
+        <div>
+            <button id="backBtn" class="secondary">Назад</button>
+            <button id="nextBtn">Далее</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const initialUserId = "{{ user_id }}";
+</script>
+<script src="/static/js/main.js"></script>
+</body>
+</html>
