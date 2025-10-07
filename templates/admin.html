@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Админка CNC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #10151f;
+            color: #f0f4ff;
+            margin: 0;
+            padding: 24px;
+        }
+        h1 { margin-bottom: 16px; }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 18px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.25);
+            color: #fff;
+            margin-bottom: 12px;
+        }
+        button {
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: none;
+            background: #217bff;
+            color: #fff;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+        ul { list-style: none; padding: 0; }
+        li { margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+        .history-item { font-size: 0.9rem; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .status { margin-top: 12px; display: none; padding: 10px; border-radius: 10px; }
+        .status.ok { background: rgba(46,204,113,0.2); }
+        .status.err { background: rgba(231,76,60,0.2); }
+    </style>
+</head>
+<body>
+    <h1>Панель администратора</h1>
+    <div class="card" id="loginCard" style="display: none;">
+        <h2>Авторизация</h2>
+        <input type="password" id="adminPassword" placeholder="Пароль администратора">
+        <button id="loginBtn">Войти</button>
+        <div class="status err" id="loginStatus"></div>
+    </div>
+
+    <div class="card" id="usersCard" style="display: none;">
+        <h2>Пользователи</h2>
+        <div>
+            <input type="text" id="newUserId" placeholder="Telegram ID">
+            <input type="text" id="newUserName" placeholder="Имя пользователя">
+            <button id="addUserBtn">Добавить</button>
+        </div>
+        <ul id="usersList"></ul>
+        <div class="status" id="usersStatus"></div>
+    </div>
+
+    <div class="card" id="historyCard" style="display: none;">
+        <h2>История расчётов</h2>
+        <div id="historyList"></div>
+    </div>
+
+<script>
+    const adminLogged = {{ 'true' if admin_logged else 'false' }};
+
+    const loginCard = document.getElementById('loginCard');
+    const usersCard = document.getElementById('usersCard');
+    const historyCard = document.getElementById('historyCard');
+    const loginStatus = document.getElementById('loginStatus');
+    const usersStatus = document.getElementById('usersStatus');
+
+    function toggleCards() {
+        if (adminLogged || sessionStorage.getItem('adminSession') === 'true') {
+            loginCard.style.display = 'none';
+            usersCard.style.display = 'block';
+            historyCard.style.display = 'block';
+            fetchUsers();
+            fetchHistory();
+        } else {
+            loginCard.style.display = 'block';
+        }
+    }
+
+    async function adminLogin() {
+        const password = document.getElementById('adminPassword').value;
+        const res = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+        });
+        const data = await res.json();
+        if (data.success) {
+            sessionStorage.setItem('adminSession', 'true');
+            toggleCards();
+        } else {
+            loginStatus.style.display = 'block';
+            loginStatus.textContent = data.message || 'Ошибка входа';
+        }
+    }
+
+    async function fetchUsers() {
+        const res = await fetch('/api/admin/users');
+        if (!res.ok) {
+            usersStatus.style.display = 'block';
+            usersStatus.className = 'status err';
+            usersStatus.textContent = 'Не удалось загрузить пользователей';
+            return;
+        }
+        const data = await res.json();
+        renderUsers(data.users || []);
+    }
+
+    function renderUsers(users) {
+        const list = document.getElementById('usersList');
+        list.innerHTML = '';
+        users.forEach(user => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span>${user.name} (${user.id})</span>`;
+            const btn = document.createElement('button');
+            btn.textContent = 'Удалить';
+            btn.addEventListener('click', () => deleteUser(user.id));
+            li.appendChild(btn);
+            list.appendChild(li);
+        });
+    }
+
+    async function addUser() {
+        const id = document.getElementById('newUserId').value;
+        const name = document.getElementById('newUserName').value;
+        const res = await fetch('/api/admin/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: id, name })
+        });
+        const data = await res.json();
+        usersStatus.style.display = 'block';
+        if (data.error) {
+            usersStatus.className = 'status err';
+            usersStatus.textContent = data.error;
+        } else {
+            usersStatus.className = 'status ok';
+            usersStatus.textContent = 'Пользователь добавлен';
+            document.getElementById('newUserId').value = '';
+            document.getElementById('newUserName').value = '';
+            fetchUsers();
+        }
+    }
+
+    async function deleteUser(id) {
+        const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            usersStatus.style.display = 'block';
+            usersStatus.className = 'status ok';
+            usersStatus.textContent = 'Пользователь удалён';
+            fetchUsers();
+        }
+    }
+
+    async function fetchHistory() {
+        const res = await fetch('/api/admin/history');
+        if (!res.ok) return;
+        const data = await res.json();
+        const container = document.getElementById('historyList');
+        container.innerHTML = '';
+        (data.history || []).slice().reverse().forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `<strong>${item.material || 'Материал'}</strong> — ${item.tool_type}, Vc ${item.vc} м/мин, n ${item.n} об/мин<br><small>${item.timestamp}</small>`;
+            container.appendChild(div);
+        });
+    }
+
+    document.getElementById('loginBtn').addEventListener('click', adminLogin);
+    document.getElementById('addUserBtn').addEventListener('click', addUser);
+
+    toggleCards();
+</script>
+</body>
+</html>
