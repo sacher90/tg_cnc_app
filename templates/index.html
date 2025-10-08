@@ -84,8 +84,22 @@
         label { display: block; font-weight: 500; margin-bottom: 8px; }
         .navigation {
             display: flex;
-            justify-content: space-between;
-            margin-top: 16px;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .navigation-secondary {
+            display: flex;
+            gap: 12px;
+            flex-wrap: nowrap;
+        }
+        .navigation-secondary button {
+            flex: 1;
+        }
+        #nextBtn {
+            width: 100%;
+            padding: 16px;
+            font-size: 1.05rem;
         }
         table {
             width: 100%;
@@ -174,10 +188,10 @@
     </div>
 
     <div class="navigation">
-        <button id="resetBtn" class="secondary">Отменить и начать заново</button>
-        <div>
+        <button id="nextBtn">Далее</button>
+        <div class="navigation-secondary">
             <button id="backBtn" class="secondary">Назад</button>
-            <button id="nextBtn">Далее</button>
+            <button id="resetBtn" class="secondary">Отменить и начать заново</button>
         </div>
     </div>
 </div>

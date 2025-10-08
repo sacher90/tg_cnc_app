@@ -130,8 +130,18 @@
     }
 
     function maybeNext() {
-        if ((currentStep === 1 && state.toolType) || (currentStep === 3 && state.toolMaterial)) {
-            // highlight enables but no auto step
+        if (currentStep === 1 && state.toolType) {
+            clearError();
+            setStep(2);
+            if (materialInput) {
+                materialInput.focus();
+            }
+        } else if (currentStep === 3 && state.toolMaterial) {
+            clearError();
+            setStep(4);
+            if (diameterInput) {
+                diameterInput.focus();
+            }
         }
     }
 
