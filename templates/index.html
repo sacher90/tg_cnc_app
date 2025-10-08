@@ -13,38 +13,145 @@
         }
         body {
             margin: 0;
-            padding: 0;
-            background: #111927;
+            min-height: 100vh;
+            width: 100%;
+            background: radial-gradient(circle at top, #1a2b4a 0%, #0b1220 55%, #060910 100%);
             color: #f2f6ff;
+            display: flex;
+            justify-content: center;
         }
-        .app-container {
-            max-width: 520px;
-            margin: 0 auto;
-            padding: 24px 18px 48px;
+        .page-shell {
+            position: relative;
+            width: min(960px, 100%);
+            padding: clamp(24px, 4vw, 48px) clamp(18px, 5vw, 54px) 88px;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(24px, 5vw, 48px);
+            min-height: 100vh;
+            z-index: 0;
+        }
+        .page-shell::before,
+        .page-shell::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 36px;
+            pointer-events: none;
+        }
+        .page-shell::before {
+            background: radial-gradient(60% 60% at 25% 10%, rgba(56, 141, 255, 0.45), transparent 70%),
+                        radial-gradient(45% 45% at 80% 15%, rgba(77, 224, 209, 0.35), transparent 70%);
+            filter: blur(60px);
+            opacity: 0.65;
+            z-index: -2;
+        }
+        .page-shell::after {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0));
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            z-index: -1;
+        }
+        .hero {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 28px;
+            min-height: clamp(240px, 36vh, 320px);
+            padding: clamp(32px, 6vw, 56px) clamp(24px, 6vw, 64px);
+            border-radius: 28px;
+            background: linear-gradient(140deg, rgba(28, 44, 76, 0.85) 0%, rgba(12, 20, 34, 0.9) 70%);
+            box-shadow: 0 32px 64px rgba(4, 10, 26, 0.35);
+            overflow: hidden;
+        }
+        .hero,
+        .app-container,
+        .app-footer {
+            position: relative;
+            z-index: 1;
+        }
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top right, rgba(72, 138, 255, 0.22), transparent 55%),
+                        radial-gradient(circle at bottom left, rgba(77, 224, 209, 0.18), transparent 60%);
+            pointer-events: none;
+        }
+        .hero-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+        }
+        .hero-visual {
+            width: min(320px, 70vw);
+            aspect-ratio: 9 / 7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, rgba(47, 128, 255, 0.28), rgba(9, 18, 38, 0.55));
+            border-radius: 26px;
+            padding: clamp(18px, 4vw, 28px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+        .hero-visual img {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 18px 32px rgba(12, 28, 60, 0.55));
         }
         h1 {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
+            margin: 0;
+            font-size: clamp(2.4rem, 5vw, 3.4rem);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
         }
-        .app-subtitle {
-            margin: 0 0 16px;
-            font-size: 1rem;
-            color: rgba(242, 246, 255, 0.8);
+        .hero-tagline {
+            margin: 0;
+            max-width: 520px;
+            font-size: clamp(1.05rem, 2.3vw, 1.25rem);
+            line-height: 1.6;
+            color: rgba(242, 246, 255, 0.82);
         }
-        .app-meta {
-            margin: 0 0 20px;
+        .app-container {
+            position: relative;
+            flex: 1 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            padding: clamp(24px, 5vw, 40px);
+            border-radius: 28px;
+            background: linear-gradient(160deg, rgba(13, 22, 38, 0.92), rgba(18, 32, 58, 0.82));
+            box-shadow: 0 24px 48px rgba(3, 8, 20, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        #accessMessage {
+            margin: 0;
             font-size: 0.95rem;
-            color: rgba(242, 246, 255, 0.7);
+            color: rgba(120, 232, 172, 0.85);
+        }
+        #accessMessage:empty {
+            display: none;
         }
         .step {
             display: none;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 20px;
-            margin-top: 16px;
-            box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+            padding: clamp(18px, 4vw, 28px);
+            border-radius: 22px;
+            background: linear-gradient(150deg, rgba(24, 40, 68, 0.65), rgba(10, 18, 32, 0.55));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
         }
-        .step.active { display: block; }
+        .step.active {
+            display: block;
+        }
+        .step h2 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 1.25rem;
+        }
         .btn-row {
             display: flex;
             gap: 12px;
@@ -53,69 +160,99 @@
         button {
             cursor: pointer;
             border: none;
-            border-radius: 12px;
-            padding: 12px 18px;
+            border-radius: 14px;
+            padding: 12px 20px;
             font-size: 1rem;
             font-weight: 500;
-            background: linear-gradient(135deg, #28a4ff, #217bff);
+            background: linear-gradient(135deg, #2f80ff, #1e5eff);
             color: #fff;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+            box-shadow: 0 16px 28px rgba(31, 101, 255, 0.3);
         }
         button.secondary {
-            background: rgba(255,255,255,0.12);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: none;
         }
         button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            box-shadow: none;
         }
         button:hover:not(:disabled) {
-            transform: translateY(-1px);
-            box-shadow: 0 12px 20px rgba(33, 123, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 22px 32px rgba(37, 113, 255, 0.35);
+        }
+        button.active {
+            background: linear-gradient(135deg, #4de0d1, #2f80ff);
+            box-shadow: 0 20px 30px rgba(59, 210, 214, 0.32);
         }
         input, select {
             width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(13, 25, 39, 0.9);
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(5, 12, 24, 0.65);
             color: #f2f6ff;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
+            font-size: 1rem;
+            transition: border 0.2s ease, box-shadow 0.2s ease;
         }
-        label { display: block; font-weight: 500; margin-bottom: 8px; }
+        input:focus, select:focus {
+            outline: none;
+            border-color: rgba(79, 160, 255, 0.85);
+            box-shadow: 0 0 0 3px rgba(79, 160, 255, 0.2);
+        }
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
         .navigation {
             display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
             justify-content: space-between;
-            margin-top: 16px;
+            margin-top: 12px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            overflow: hidden;
         }
-        table th, table td {
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 10px;
+        table th,
+        table td {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 12px 14px;
             text-align: left;
+        }
+        table th {
+            background: rgba(33, 54, 92, 0.55);
         }
         .recommendations {
             margin-top: 20px;
-            background: rgba(0,0,0,0.35);
-            padding: 16px;
-            border-radius: 14px;
+            background: linear-gradient(140deg, rgba(40, 64, 104, 0.6), rgba(18, 32, 58, 0.4));
+            padding: 18px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .pill {
             display: inline-block;
-            padding: 4px 10px;
+            padding: 6px 12px;
             border-radius: 999px;
-            background: rgba(40,164,255,0.2);
+            background: rgba(77, 224, 209, 0.25);
             margin-right: 8px;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
         }
         .error-box {
-            margin-top: 12px;
-            background: rgba(255, 86, 86, 0.2);
-            padding: 12px;
-            border-radius: 10px;
+            margin-top: 8px;
+            background: linear-gradient(135deg, rgba(255, 86, 86, 0.16), rgba(255, 86, 86, 0.28));
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 107, 107, 0.35);
             display: none;
         }
         .success-box {
@@ -125,17 +262,57 @@
             border-radius: 10px;
             display: none;
         }
+        .app-footer {
+            font-size: 0.75rem;
+            text-align: center;
+            color: rgba(242, 246, 255, 0.62);
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        @media (min-width: 720px) {
+            .hero {
+                flex-direction: row;
+                text-align: left;
+                padding: clamp(42px, 7vw, 64px);
+            }
+            .hero-visual {
+                flex: 0 0 44%;
+            }
+            .hero-text {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            .hero-tagline {
+                text-align: left;
+            }
+            .navigation {
+                align-items: center;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="app-container">
-    <h1>AI технолог</h1>
-    <p class="app-subtitle">Режимы резания CNC для компании «ЭЛЕМЕТ»</p>
-    <p class="app-meta">Создатель приложения: Чернов Сергей</p>
-    <p id="accessMessage"></p>
-    <div class="error-box" id="errorBox"></div>
+<div class="page-shell">
+    <header class="hero">
+        <div class="hero-visual">
+            <img src="/static/img/cnc-hero.svg" alt="Абстрактная иллюстрация CNC" loading="lazy">
+        </div>
+        <div class="hero-text">
+            <h1>AI технолог</h1>
+            <p class="hero-tagline">Интеллектуальный подбор оптимальных режимов резания и прозрачный контроль производственных параметров.</p>
+        </div>
+    </header>
 
-    <div class="step" id="step-1">
+    <main class="app-container">
+        <p id="accessMessage"></p>
+        <div class="error-box" id="errorBox"></div>
+
+        <div class="step" id="step-1">
         <h2>Шаг 1: Выберите инструмент</h2>
         <div class="btn-row">
             <button data-tool="drill" class="tool-btn">Сверло</button>
@@ -143,14 +320,14 @@
         </div>
     </div>
 
-    <div class="step" id="step-2">
+        <div class="step" id="step-2">
         <h2>Шаг 2: Материал заготовки</h2>
         <label for="materialInput">Введите название материала</label>
         <input id="materialInput" list="materialsList" placeholder="Например: Алюминий 6061" autocomplete="off">
         <datalist id="materialsList"></datalist>
     </div>
 
-    <div class="step" id="step-3">
+        <div class="step" id="step-3">
         <h2>Шаг 3: Материал инструмента</h2>
         <div class="btn-row">
             <button class="tool-material-btn" data-material="HSS">HSS</button>
@@ -159,7 +336,7 @@
         </div>
     </div>
 
-    <div class="step" id="step-4">
+        <div class="step" id="step-4">
         <h2>Шаг 4: Геометрия инструмента</h2>
         <label for="diameterInput">Диаметр инструмента, мм</label>
         <input id="diameterInput" type="number" min="0.1" step="0.1" placeholder="Например: 12">
@@ -167,19 +344,25 @@
         <input id="teethInput" type="number" min="1" step="1" placeholder="Например: 4">
     </div>
 
-    <div class="step" id="step-5">
+        <div class="step" id="step-5">
         <h2>Шаг 5: Результат</h2>
         <div id="resultsContainer"></div>
         <div class="recommendations" id="recommendationsContainer"></div>
     </div>
 
-    <div class="navigation">
+        <div class="navigation">
         <button id="resetBtn" class="secondary">Отменить и начать заново</button>
         <div>
             <button id="backBtn" class="secondary">Назад</button>
             <button id="nextBtn">Далее</button>
         </div>
     </div>
+    </main>
+
+    <footer class="app-footer">
+        <p>Режимы резания CNC для компании «ЭЛЕМЕТ»</p>
+        <p>Создатель приложения: Чернов Сергей</p>
+    </footer>
 </div>
 
 <script>
