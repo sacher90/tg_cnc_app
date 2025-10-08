@@ -141,24 +141,80 @@ def calc_modes():
 
 def _build_recommendations(material_props: Dict[str, Any], tool_type: str, tool_material: str) -> Dict[str, Any]:
     risks = material_props.get("risks", [])
-    notes = material_props.get("notes", [])
+    base_notes = list(material_props.get("notes", []))
+    dynamic_notes = _generate_dynamic_notes(material_props, tool_type, tool_material)
 
-    extra_notes = []
-    temperature_risk = str(material_props.get("temperature_risk", "средний")).lower()
-    if "выс" in temperature_risk:
-        extra_notes.append("Сократите время резания, применяйте активное охлаждение.")
-    if tool_type == "mill" and tool_material.lower() == "carbide":
-        extra_notes.append("Используйте динамическую стратегию обработки для снижения вибраций.")
-    if tool_type == "drill":
-        extra_notes.append("Проверяйте удаление стружки, применяйте прерывистое сверление при глубине >3D.")
+    deduped_notes = []
+    seen = set()
+    for note in base_notes + dynamic_notes:
+        if not note:
+            continue
+        if note not in seen:
+            deduped_notes.append(note)
+            seen.add(note)
 
     return {
         "risks": risks,
-        "notes": notes + extra_notes,
+        "notes": deduped_notes,
         "coolant": material_props.get("coolant", ""),
         "temperature_risk": material_props.get("temperature_risk", ""),
         "work_hardening": material_props.get("work_hardening", ""),
     }
+
+
+def _generate_dynamic_notes(material_props: Dict[str, Any], tool_type: str, tool_material: str) -> list[str]:
+    """Compose context-aware recommendations for the UI."""
+
+    notes: list[str] = []
+    tool_type = tool_type.lower()
+    tool_material_lower = tool_material.lower()
+    tool_material_upper = tool_material.upper()
+
+    material_name = str(material_props.get("name", "Материал")).strip()
+    machinability = float(material_props.get("machinability_index", 0.6) or 0.0)
+    temperature_risk = str(material_props.get("temperature_risk", "средний")).lower()
+    work_hardening = str(material_props.get("work_hardening", "средняя")).lower()
+
+    if machinability <= 0.45:
+        notes.append(
+            f"{material_name}: держите минимально возможный вылет инструмента и снижайте подачу на 10-15%."
+        )
+    elif machinability >= 0.75:
+        notes.append(
+            f"{material_name}: допускается агрессивная стратегия с повышенной подачей, контролируйте вибрации."
+        )
+
+    if "выс" in temperature_risk:
+        notes.append("Повышенный нагрев — используйте обильное охлаждение и делайте технологические паузы.")
+    elif "низ" in temperature_risk:
+        notes.append("Низкий нагрев — можно применять минимальную СОЖ, уделите внимание удалению стружки.")
+
+    if "выс" in work_hardening:
+        notes.append("Материал склонен к наклёпу — увеличьте подачу и избегайте холостых проходов.")
+    elif "низ" in work_hardening and tool_type == "mill":
+        notes.append("Низкая склонность к наклёпу — используйте постоянную нагрузку на зуб для ровной поверхности.")
+
+    recommended_vc_key = (
+        "recommended_vc_carbide" if tool_material_lower == "carbide" else "recommended_vc_hss"
+    )
+    recommended_vc = material_props.get(recommended_vc_key)
+    if recommended_vc:
+        notes.append(f"Ориентируйтесь на скорость резания {recommended_vc} для инструмента {tool_material_upper}.")
+
+    if tool_type == "mill":
+        fz_range = material_props.get("recommended_fz")
+        if fz_range:
+            notes.append(f"Поддерживайте подачу на зуб в диапазоне {fz_range} для стабильной фрезеровки.")
+        if tool_material_lower == "carbide":
+            notes.append("Пробуйте динамическое фрезерование с постоянной нагрузкой для твердосплава.")
+        else:
+            notes.append("Для HSS выбирайте лёгкий встречный проход и невысокую глубину при черновых операциях.")
+    elif tool_type == "drill":
+        notes.append("При сверлении очищайте канавки и выполняйте прерывистое сверление глубже 3D.")
+    else:
+        notes.append("Следите за равномерным износом и корректируйте подачи между черновыми и чистовыми проходами.")
+
+    return notes
 
 
 @app.post("/api/admin/login")
